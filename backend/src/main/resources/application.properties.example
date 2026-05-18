@@ -20,3 +20,8 @@ server.port=8080
 gemini.api.key=SUA_CHAVE_GEMINI_AQUI
 # Modelos disponíveis: gemini-2.5-flash | gemini-2.0-flash | gemini-2.5-pro
 gemini.model=gemini-2.5-flash
+
+# CORS — origens permitidas (separadas por vírgula)
+# Em produção no Render, crie a variável de ambiente APP_CORS_ORIGINS com a URL da Vercel:
+# APP_CORS_ORIGINS=https://raizes-culturais.vercel.app
+app.cors.origins=http://localhost:5173,http://localhost:3000
