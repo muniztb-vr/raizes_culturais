@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Urbanist:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-silk-cream text-forest-green font-sans text-base;
+  }
+
+  h1, h2, h3 {
+    @apply font-serif text-forest-green;
+  }
+}

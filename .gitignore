@@ -1,0 +1,104 @@
+# ═══════════════════════════════════════════════════════════════
+# RAÍZES CULTURAIS — .gitignore
+# Protege credenciais, artefatos de build e arquivos de ambiente.
+# ═══════════════════════════════════════════════════════════════
+
+# ── SEGURANÇA CRÍTICA ────────────────────────────────────────────
+# Nunca commitar arquivos com senhas, chaves de API ou tokens
+
+# Spring Boot: credenciais do banco e API Key do Gemini
+backend/src/main/resources/application.properties
+backend/src/main/resources/application-*.properties
+backend/src/main/resources/application-*.yml
+backend/src/main/resources/application-*.yaml
+
+# Variáveis de ambiente genéricas
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+**/.env
+**/.env.local
+
+# Chaves e certificados
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+*.truststore
+
+# ── BACKEND — Java / Maven / Spring ──────────────────────────────
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+!*-wrapper.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# Relatórios de teste e dumps
+surefire-reports/
+*.dump
+*.dumpstream
+*.jvmRun*.dump
+
+# ── FRONTEND — React / Vite / Node ───────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# Cypress artefatos de teste (nunca commitar videos/screenshots)
+frontend/cypress/videos/
+frontend/cypress/screenshots/
+frontend/cypress/downloads/
+
+# Cache e temporários de ferramentas
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+
+# ── CLAUDE CODE (memórias e configuração local do assistente) ─────
+.claude/
+
+# ── IDEs E EDITORES ───────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.settings/
+.classpath
+
+# ── SISTEMA OPERACIONAL ───────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── DOCUMENTOS COM INFORMAÇÕES SENSÍVEIS ─────────────────────────
+# Se o PDF contém chaves de API, adicione aqui:
+# "API IA Gemini.pdf"
+
+# ── LOGS ──────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
