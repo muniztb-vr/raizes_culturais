@@ -6,11 +6,10 @@
 # ── SEGURANÇA CRÍTICA ────────────────────────────────────────────
 # Nunca commitar arquivos com senhas, chaves de API ou tokens
 
-# Spring Boot: credenciais do banco e API Key do Gemini
-backend/src/main/resources/application.properties
-backend/src/main/resources/application-*.properties
-backend/src/main/resources/application-*.yml
-backend/src/main/resources/application-*.yaml
+# Spring Boot: apenas o arquivo local com credenciais reais é bloqueado
+# application.properties usa ${ENV_VAR} e é seguro para commitar
+backend/src/main/resources/application-local.properties
+backend/src/main/resources/application-local.yml
 
 # Variáveis de ambiente genéricas
 .env
