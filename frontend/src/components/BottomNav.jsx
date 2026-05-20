@@ -29,6 +29,14 @@ function PeopleIcon({ active }) {
   );
 }
 
+function EventosIcon({ active }) {
+  return (
+    <svg className="w-6 h-6" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
 function DashboardIcon({ active }) {
   return (
     <svg className="w-6 h-6" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.8}>
@@ -54,6 +62,7 @@ export default function BottomNav() {
   const { produtor } = useAuth();
   const navigate = useNavigate();
   const [proximo, setProximo] = useState(null);
+  const [bannerVisivel, setBannerVisivel] = useState(true);
 
   useEffect(() => {
     eventoService.listarAtivos()
@@ -61,7 +70,6 @@ export default function BottomNav() {
         if (data.length > 0) {
           setProximo(proximoEventoDaLista(data));
         } else {
-          // Fallback para mock se banco vazio
           setProximo(proximoEvento());
         }
       })
@@ -69,43 +77,63 @@ export default function BottomNav() {
   }, []);
 
   const TABS = [
-    { to: "/", label: "Início", Icon: HomeIcon },
-    { to: "/vitrine", label: "Vitrine", Icon: ShopIcon },
-    { to: "/produtores", label: "Produtores", Icon: PeopleIcon },
+    { to: "/",          label: "Início",    Icon: HomeIcon },
+    { to: "/vitrine",   label: "Vitrine",   Icon: ShopIcon },
+    { to: "/eventos",   label: "Eventos",   Icon: EventosIcon },
+    { to: "/produtores",label: "Produtores",Icon: PeopleIcon },
     produtor
       ? { to: "/dashboard", label: "Painel", Icon: DashboardIcon }
-      : { to: "/entrar", label: "Entrar", Icon: LoginIcon },
+      : { to: "/entrar",    label: "Entrar", Icon: LoginIcon },
   ];
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
-      {/* Banner Próximo Evento — clicável na área toda */}
-      {proximo && (
-        <button
-          onClick={() => navigate("/eventos")}
-          className="w-full mx-0 mb-0 px-4 pt-2 pb-0"
-        >
-          <div className="bg-forest-green rounded-2xl px-4 py-3 flex items-center justify-between shadow-xl">
-            <div className="text-left min-w-0 flex-1">
-              <p className="text-old-gold text-[10px] font-bold uppercase tracking-widest">
-                Próximo Evento
-              </p>
-              <p className="text-silk-cream text-sm font-semibold leading-tight mt-0.5 truncate">
-                {proximo.nome}
-              </p>
-              <p className="text-silk-cream/60 text-xs mt-0.5">
-                {formatEventShort(proximo)}
-              </p>
-            </div>
-            <div className="shrink-0 ml-3 w-9 h-9 bg-old-gold rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-forest-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+
+      {/* Banner Próximo Evento com botão de fechar */}
+      {proximo && bannerVisivel && (
+        <div className="px-4 pt-2 pb-0">
+          <div className="bg-forest-green rounded-2xl px-4 py-3 flex items-center gap-3 shadow-xl relative">
+
+            {/* Conteúdo clicável */}
+            <button
+              onClick={() => navigate("/eventos")}
+              className="flex items-center gap-3 flex-1 min-w-0 text-left"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-old-gold text-[10px] font-bold uppercase tracking-widest">
+                  Próximo Evento
+                </p>
+                <p className="text-silk-cream text-sm font-semibold leading-tight mt-0.5 truncate">
+                  {proximo.nome}
+                </p>
+                <p className="text-silk-cream/60 text-xs mt-0.5">
+                  {formatEventShort(proximo)}
+                </p>
+              </div>
+              <div className="shrink-0 w-9 h-9 bg-old-gold rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-forest-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </button>
+
+            {/* Botão fechar — área de toque 44×44px */}
+            <button
+              onClick={() => setBannerVisivel(false)}
+              aria-label="Fechar banner de evento"
+              className="shrink-0 -mr-1 w-11 h-11 flex items-center justify-center
+                rounded-full text-silk-cream/50 hover:text-silk-cream
+                hover:bg-white/10 active:bg-white/20 transition-colors"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </div>
+            </button>
           </div>
-        </button>
+        </div>
       )}
 
+      {/* Navegação inferior */}
       <nav className="bg-white border-t border-gray-100">
         <div className="flex justify-around">
           {TABS.map(({ to, label, Icon }) => (
@@ -114,7 +142,7 @@ export default function BottomNav() {
               to={to}
               end={to === "/"}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-0.5 py-2 px-4 min-w-[60px] transition-colors ${
+                `flex flex-col items-center gap-0.5 py-2 px-3 min-w-[52px] transition-colors ${
                   isActive ? "text-forest-green" : "text-gray-400"
                 }`
               }
@@ -132,3 +160,4 @@ export default function BottomNav() {
     </div>
   );
 }
+
