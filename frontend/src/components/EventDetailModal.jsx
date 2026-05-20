@@ -71,7 +71,7 @@ export default function EventDetailModal({ evento, vagas, onClose, onInscrever }
         </div>
 
         {/* ── BODY rolável ── */}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 pt-5 pb-3 flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 pt-5 pb-0 flex flex-col gap-4">
 
           {/* Grid de informações */}
           <div className="grid grid-cols-2 gap-3">
@@ -118,32 +118,32 @@ export default function EventDetailModal({ evento, vagas, onClose, onInscrever }
           )}
         </div>
 
-        {/* ── FOOTER fixo — botões sempre visíveis ── */}
-        <div className="shrink-0 px-5 pt-3 pb-6 border-t border-forest-green/8 flex flex-col gap-3 bg-white">
-          <button
-            onClick={handleVerNoMapa}
-            className="w-full min-h-[48px] border-2 border-old-gold text-forest-green rounded-2xl
-              font-semibold text-sm hover:bg-old-gold/10 active:scale-[0.99] transition-all
-              flex items-center justify-center gap-2"
-          >
-            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Como Chegar (Google Maps)
-          </button>
+          {/* Botões lado a lado — parte do scroll */}
+          <div className="flex gap-3 pt-1 pb-6">
+            <button
+              onClick={handleVerNoMapa}
+              className="flex-1 min-h-[52px] border-2 border-old-gold text-forest-green rounded-2xl
+                font-semibold text-sm hover:bg-old-gold/10 active:scale-[0.99] transition-all
+                flex items-center justify-center gap-1.5"
+            >
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Como Chegar
+            </button>
 
-          <button
-            onClick={onInscrever}
-            className="w-full min-h-[52px] bg-forest-green text-silk-cream rounded-2xl
-              font-bold text-base hover:bg-old-gold hover:text-forest-green
-              active:scale-[0.99] transition-colors"
-          >
-            Confirmar Participação
-          </button>
-        </div>
+            <button
+              onClick={onInscrever}
+              className="flex-1 min-h-[52px] bg-forest-green text-silk-cream rounded-2xl
+                font-bold text-sm hover:bg-old-gold hover:text-forest-green
+                active:scale-[0.99] transition-colors"
+            >
+              Confirmar Participação
+            </button>
+          </div>
       </div>
     </div>
   );
