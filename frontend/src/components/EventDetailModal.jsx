@@ -11,7 +11,7 @@ export default function EventDetailModal({ evento, vagas, onClose, onInscrever }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+    <div className="fixed inset-0 z-50 p-4 flex flex-col justify-start items-center sm:justify-center">
 
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -26,8 +26,8 @@ export default function EventDetailModal({ evento, vagas, onClose, onInscrever }
         │  FOOTER fixo        │  botões de ação sempre visíveis
         └─────────────────────┘
       */}
-      <div className="relative w-full md:max-w-2xl bg-white rounded-t-3xl md:rounded-3xl shadow-2xl
-        flex flex-col max-h-[92vh]">
+      <div className="relative w-full sm:max-w-2xl bg-white rounded-3xl shadow-2xl
+        flex flex-col max-h-[90vh] mt-4 sm:mt-0">
 
         {/* ── HEADER fixo ── */}
         <div className="relative h-48 sm:h-52 shrink-0 rounded-t-3xl overflow-hidden">
