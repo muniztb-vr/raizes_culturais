@@ -5,63 +5,79 @@ export default function EventDetailModal({ evento, vagas, onClose, onInscrever }
 
   const dateStr = formatDateRange(evento.dataInicio, evento.dataFim);
 
-  // Função para abrir o Google Maps com o endereço do evento
   const handleVerNoMapa = () => {
-    const enderecoCompleto = `${evento.local}, ${evento.cidade}, ${evento.estado}`;
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      enderecoCompleto
-    )}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    const q = encodeURIComponent(`${evento.local}, ${evento.cidade}, ${evento.estado}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, "_blank", "noopener,noreferrer");
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal */}
-      <div className="relative w-full md:max-w-2xl bg-white rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl max-h-[92vh] overflow-y-auto">
-        {/* Hero */}
-        <div className="relative h-52">
-          <img
-            src={evento.fotoUrl || evento.imagem}
-            alt={evento.nome}
-            className="w-full h-full object-cover"
-            onError={(e) => { e.target.style.display = "none"; }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+      {/*
+        Modal — divide-se em 3 camadas:
+        ┌─────────────────────┐
+        │  HEADER fixo        │  hero image + close + título
+        ├─────────────────────┤
+        │  BODY rolável       │  info, descrição, badge
+        ├─────────────────────┤
+        │  FOOTER fixo        │  botões de ação sempre visíveis
+        └─────────────────────┘
+      */}
+      <div className="relative w-full md:max-w-2xl bg-white rounded-t-3xl md:rounded-3xl shadow-2xl
+        flex flex-col max-h-[92vh]">
 
-          {/* Botão Fechar */}
+        {/* ── HEADER fixo ── */}
+        <div className="relative h-48 sm:h-52 shrink-0 rounded-t-3xl overflow-hidden">
+          {evento.fotoUrl || evento.imagem ? (
+            <img
+              src={evento.fotoUrl || evento.imagem}
+              alt={evento.nome}
+              className="w-full h-full object-cover"
+              onError={(e) => { e.target.style.display = "none"; }}
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-forest-green to-forest-green/60
+              flex items-center justify-center">
+              <span className="text-6xl opacity-25">📅</span>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-black/10" />
+
+          {/* Botão Fechar — toque mínimo 44×44px */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow"
+            aria-label="Fechar modal"
+            className="absolute top-3 right-3 w-11 h-11 bg-black/40 backdrop-blur-sm
+              rounded-full flex items-center justify-center
+              hover:bg-black/60 active:scale-95 transition-all"
           >
-            <svg className="w-4 h-4 text-forest-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+            <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
 
-          {/* Título e Localização */}
-          <div className="absolute bottom-4 left-4">
-            <h2 className="text-white font-serif text-2xl font-bold leading-tight">
+          {/* Título e localização sobre a imagem */}
+          <div className="absolute bottom-4 left-4 right-14">
+            <h2 className="text-white font-serif text-xl sm:text-2xl font-bold leading-tight">
               {evento.nome}
             </h2>
             <p className="text-old-gold text-sm font-semibold mt-0.5">
-              {evento.cidade}, {evento.estado}
+              📍 {evento.cidade}, {evento.estado}
             </p>
           </div>
         </div>
 
-        {/* Conteúdo */}
-        <div className="p-5 flex flex-col gap-5">
-          {/* Grid de Informações */}
+        {/* ── BODY rolável ── */}
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 pt-5 pb-3 flex flex-col gap-4">
+
+          {/* Grid de informações */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "DATA", value: dateStr },
-              { label: "LOCAL", value: evento.local },
+              { label: "DATA",            value: dateStr },
+              { label: "LOCAL",           value: evento.local },
               {
                 label: "VAGAS EXPOSITOR",
                 value: vagas?.expositor ?? evento.vagasExpositor,
@@ -77,7 +93,9 @@ export default function EventDetailModal({ evento, vagas, onClose, onInscrever }
                 <p className="text-[10px] font-bold text-forest-green/40 uppercase tracking-wider">
                   {label}
                 </p>
-                <p className={`text-sm font-semibold mt-1 leading-snug ${esgotado ? "text-red-500" : "text-forest-green"}`}>
+                <p className={`text-sm font-semibold mt-1 leading-snug ${
+                  esgotado ? "text-red-500" : "text-forest-green"
+                }`}>
                   {esgotado ? "Esgotado" : value}
                 </p>
               </div>
@@ -89,7 +107,7 @@ export default function EventDetailModal({ evento, vagas, onClose, onInscrever }
             {evento.descricao}
           </p>
 
-          {/* Selo de Entrada Gratuita */}
+          {/* Entrada gratuita */}
           {evento.entradaGratuita && (
             <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 flex items-center gap-2">
               <span className="text-green-600">✅</span>
@@ -98,32 +116,36 @@ export default function EventDetailModal({ evento, vagas, onClose, onInscrever }
               </span>
             </div>
           )}
+        </div>
 
-          {/* Ações do Usuário */}
-          <div className="flex flex-col gap-3">
-            {/* NOVO: Botão Como Chegar */}
-            <button
-              onClick={handleVerNoMapa}
-              className="w-full min-h-[52px] border-2 border-old-gold text-forest-green rounded-2xl font-semibold text-base
-                hover:bg-old-gold/10 transition-all flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              Como Chegar (Google Maps)
-            </button>
+        {/* ── FOOTER fixo — botões sempre visíveis ── */}
+        <div className="shrink-0 px-5 pt-3 pb-6 border-t border-forest-green/8 flex flex-col gap-3 bg-white">
+          <button
+            onClick={handleVerNoMapa}
+            className="w-full min-h-[48px] border-2 border-old-gold text-forest-green rounded-2xl
+              font-semibold text-sm hover:bg-old-gold/10 active:scale-[0.99] transition-all
+              flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Como Chegar (Google Maps)
+          </button>
 
-            <button
-              onClick={onInscrever}
-              className="w-full min-h-[52px] bg-forest-green text-silk-cream rounded-2xl font-semibold text-base
-                hover:bg-old-gold hover:text-forest-green transition-colors"
-            >
-              Confirmar Participação
-            </button>
-          </div>
+          <button
+            onClick={onInscrever}
+            className="w-full min-h-[52px] bg-forest-green text-silk-cream rounded-2xl
+              font-bold text-base hover:bg-old-gold hover:text-forest-green
+              active:scale-[0.99] transition-colors"
+          >
+            Confirmar Participação
+          </button>
         </div>
       </div>
     </div>
   );
 }
+
