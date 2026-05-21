@@ -29,7 +29,8 @@ public class PasswordResetService {
     @Value("${app.frontend.url:https://raizes-culturais.vercel.app}")
     private String frontendUrl;
 
-    @Value("${spring.mail.username:}")
+    // Lê diretamente da variável de ambiente do Render
+    @Value("${MAIL_USERNAME:}")
     private String mailUsername;
 
     // ── Solicitar recuperação ─────────────────────────────────────────────────
@@ -67,7 +68,7 @@ public class PasswordResetService {
     private void enviarEmail(String destinatario, String link) {
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
-            msg.setFrom("Raízes Culturais <" + mailUsername + ">");
+            msg.setFrom(mailUsername);
             msg.setTo(destinatario);
             msg.setSubject("Recuperação de senha — Raízes Culturais");
             msg.setText("""
