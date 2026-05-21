@@ -625,6 +625,80 @@ function AbaConfiguracoes({ produtor, atualizarProdutor }) {
   );
 }
 
+// ── Seção Segurança (alterar senha) ──────────────────────────────────────────
+
+function SecaoSeguranca({ produtorId }) {
+  const [form, setForm] = useState({ senhaAtual: "", novaSenha: "", confirmar: "" });
+  const [salvando, setSalvando] = useState(false);
+  const [salvo, setSalvo] = useState(false);
+  const [erro, setErro] = useState(null);
+
+  const change = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setErro(null);
+    if (form.novaSenha.length < 6) { setErro("A nova senha deve ter pelo menos 6 caracteres."); return; }
+    if (form.novaSenha !== form.confirmar) { setErro("As senhas não coincidem."); return; }
+    setSalvando(true);
+    try {
+      await authService.alterarSenha(produtorId, form.senhaAtual, form.novaSenha);
+      setSalvo(true);
+      setForm({ senhaAtual: "", novaSenha: "", confirmar: "" });
+      setTimeout(() => setSalvo(false), 4000);
+    } catch (err) {
+      const msg = err.response?.data?.message || "Erro ao alterar senha.";
+      setErro(msg);
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-2xl p-5 border border-forest-green/10 shadow-sm flex flex-col gap-4">
+      <h3 className="font-serif text-base font-bold text-forest-green flex items-center gap-2">
+        🔐 Segurança — Alterar Senha
+      </h3>
+
+      {salvo && (
+        <div role="alert" className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-xl text-sm font-semibold">
+          ✓ Senha alterada com sucesso!
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        {[
+          { name: "senhaAtual", label: "Senha atual", placeholder: "Sua senha atual" },
+          { name: "novaSenha",  label: "Nova senha",  placeholder: "Mínimo 6 caracteres" },
+          { name: "confirmar",  label: "Confirmar nova senha", placeholder: "Repita a nova senha" },
+        ].map(({ name, label, placeholder }) => (
+          <div key={name} className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-forest-green">{label}</label>
+            <input
+              name={name} type="password" required
+              value={form[name]} onChange={change}
+              placeholder={placeholder}
+              className={CAMPO}
+            />
+          </div>
+        ))}
+
+        {erro && (
+          <p role="alert" className="text-sm text-red-700 bg-red-50 px-4 py-3 rounded-xl border border-red-200">
+            {erro}
+          </p>
+        )}
+
+        <button type="submit" disabled={salvando}
+          className="w-full min-h-[44px] bg-forest-green text-silk-cream rounded-xl font-semibold text-sm mt-1
+            hover:bg-old-gold hover:text-forest-green transition-colors disabled:opacity-40">
+          {salvando ? "Alterando..." : "Alterar Senha"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 // ── Dashboard principal ───────────────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -712,10 +786,13 @@ export default function DashboardPage() {
           </div>
         )}
         {abaAtiva === "configuracoes" && (
-          <div>
-            <h2 className="font-serif text-xl font-bold text-forest-green mb-2">Configurações do Perfil</h2>
-            <p className="text-sm text-forest-green/55 mb-6 max-w-lg">Atualize seus dados cadastrais, fotos e informações de contato.</p>
-            <AbaConfiguracoes produtor={produtor} atualizarProdutor={atualizarProdutor} />
+          <div className="flex flex-col gap-6">
+            <div>
+              <h2 className="font-serif text-xl font-bold text-forest-green mb-2">Configurações do Perfil</h2>
+              <p className="text-sm text-forest-green/55 mb-6 max-w-lg">Atualize seus dados cadastrais, fotos e informações de contato.</p>
+              <AbaConfiguracoes produtor={produtor} atualizarProdutor={atualizarProdutor} />
+            </div>
+            <SecaoSeguranca produtorId={produtor.id} />
           </div>
         )}
       </div>

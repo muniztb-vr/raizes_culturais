@@ -9,4 +9,10 @@ export const authService = {
     api.put(`/produtores/${id}/configuracoes`, dados).then((r) => r.data),
   cadastrarPeloGestor: (dados) =>
     api.post("/produtores/gestor/cadastrar", dados).then((r) => r.data),
+  esqueceuSenha: (email) =>
+    api.post("/auth/forgot-password", { email }).then((r) => r.data),
+  redefinirSenha: (token, novaSenha) =>
+    api.post("/auth/reset-password", { token, novaSenha }).then((r) => r.data),
+  alterarSenha: (id, senhaAtual, novaSenha) =>
+    api.put(`/auth/produtores/${id}/senha`, { senhaAtual, novaSenha }).then((r) => r.data),
 };

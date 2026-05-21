@@ -11,6 +11,7 @@ export default function GestorLoginPage() {
   const [form, setForm] = useState({ email: "", senha: "" });
   const [erro, setErro] = useState(null);
   const [carregando, setCarregando] = useState(false);
+  const [mostrarDica, setMostrarDica] = useState(false);
 
   if (gestor) {
     return <Navigate to="/gestor" replace />;
@@ -75,15 +76,34 @@ export default function GestorLoginPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="senha" className="text-sm font-semibold text-forest-green">
-              Senha
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="senha" className="text-sm font-semibold text-forest-green">
+                Senha
+              </label>
+              <button
+                type="button"
+                onClick={() => setMostrarDica((v) => !v)}
+                className="text-xs text-old-gold hover:underline font-medium"
+              >
+                Esqueci minha senha
+              </button>
+            </div>
             <input
               id="senha" name="senha" type="password" required
               placeholder="Senha do gestor"
               value={form.senha} onChange={change}
               className={CAMPO}
             />
+            {mostrarDica && (
+              <div className="bg-old-gold/10 border border-old-gold/25 rounded-xl px-4 py-3 flex flex-col gap-1">
+                <p className="text-xs font-semibold text-forest-green">Credenciais padrão do sistema:</p>
+                <p className="text-xs text-forest-green/70">E-mail: <span className="font-mono font-bold">gestor@raizes.edu.br</span></p>
+                <p className="text-xs text-forest-green/70">Senha: <span className="font-mono font-bold">gestor2025</span></p>
+                <p className="text-xs text-forest-green/50 mt-1">
+                  Se já alterou as credenciais, acesse o painel → Configurações para redefinir.
+                </p>
+              </div>
+            )}
           </div>
 
           {erro && (

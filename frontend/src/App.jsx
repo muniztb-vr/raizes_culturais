@@ -13,6 +13,7 @@ import DashboardPage from "./pages/DashboardPage";
 import GestorDashboardPage from "./pages/GestorDashboardPage";
 import GestorLoginPage from "./pages/GestorLoginPage";
 import VitrinePage from "./pages/VitrinePage";
+import RedefinirSenhaPage from "./pages/RedefinirSenhaPage";
 
 function RotaProtegida({ children }) {
   const { produtor } = useAuth();
@@ -39,6 +40,7 @@ function AppRoutes() {
           <Route path="/assistente" element={<AssistentePage />} />
           <Route path="/cadastro" element={<CadastroPage />} />
           <Route path="/entrar" element={<LoginPage />} />
+          <Route path="/redefinir-senha" element={<RedefinirSenhaPage />} />
 
           {/* Produtor autenticado */}
           <Route path="/dashboard" element={
