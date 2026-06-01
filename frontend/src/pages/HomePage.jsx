@@ -14,15 +14,17 @@ export default function HomePage() {
   const [catExpandida, setCatExpandida] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      produtorService.listar(),
-      produtoService.contagemPorProdutor().catch(() => ({})),
-    ])
-      .then(([produtoresData, contagem]) => {
-        const enriquecidos = produtoresData.map((p) =>
-          enrichProdutor({ ...p, totalProdutos: contagem[p.id] ?? p.totalProdutos ?? 0 })
+    produtorService.listar()
+      .then(async (lista) => {
+        const contagens = await Promise.all(
+          lista.map((p) =>
+            produtoService.listarPorProdutor(p.id)
+              .then((prods) => ({ id: p.id, total: prods.length }))
+              .catch(() => ({ id: p.id, total: 0 }))
+          )
         );
-        setProdutores(enriquecidos);
+        const mapa = Object.fromEntries(contagens.map((c) => [c.id, c.total]));
+        setProdutores(lista.map((p) => enrichProdutor({ ...p, totalProdutos: mapa[p.id] ?? 0 })));
       })
       .catch(() => {});
 
