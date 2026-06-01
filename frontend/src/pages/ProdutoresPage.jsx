@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { produtorService } from "../services/produtorService";
 import { enrichProdutor, CATS_PRINCIPAIS } from "../utils/produtorUtils";
-import { CATEGORIAS_PRODUTO } from "../services/produtoService";
+import { CATEGORIAS_PRODUTO, produtoService } from "../services/produtoService";
 import ProducerListItem from "../components/ProducerListItem";
 
 export default function ProdutoresPage() {
@@ -15,9 +15,16 @@ export default function ProdutoresPage() {
   const busca = searchParams.get("q") || "";
 
   useEffect(() => {
-    produtorService
-      .listar()
-      .then((data) => setProdutores(data.map(enrichProdutor)))
+    Promise.all([
+      produtorService.listar(),
+      produtoService.contagemPorProdutor().catch(() => ({})),
+    ])
+      .then(([produtoresData, contagem]) => {
+        const enriquecidos = produtoresData.map((p) =>
+          enrichProdutor({ ...p, totalProdutos: contagem[p.id] ?? p.totalProdutos ?? 0 })
+        );
+        setProdutores(enriquecidos);
+      })
       .catch(() => setErro("Não foi possível carregar os produtores."))
       .finally(() => setCarregando(false));
   }, []);

@@ -10,7 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +24,14 @@ public class ProdutoService {
     public List<ProdutoDTO> listarPorProdutor(Long produtorId) {
         return produtoRepository.findByProdutorId(produtorId)
                 .stream().map(this::toDTO).toList();
+    }
+
+    public Map<Long, Long> contagemPorProdutor() {
+        Map<Long, Long> map = new HashMap<>();
+        for (Object[] row : produtoRepository.contarPorProdutor()) {
+            map.put((Long) row[0], (Long) row[1]);
+        }
+        return map;
     }
 
     public ProdutoDTO criar(ProdutoDTO dto) {

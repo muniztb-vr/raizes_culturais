@@ -3,6 +3,8 @@ import api from "./api";
 export const produtoService = {
   listarPorProdutor: (produtorId) =>
     api.get(`/produtores/${produtorId}/produtos`).then((r) => r.data),
+  contagemPorProdutor: () =>
+    api.get("/produtos/contagem").then((r) => r.data),
   criar: (produto) => api.post("/produtos", produto).then((r) => r.data),
   atualizar: (id, produto) => api.put(`/produtos/${id}`, produto).then((r) => r.data),
   deletar: (id) => api.delete(`/produtos/${id}`),

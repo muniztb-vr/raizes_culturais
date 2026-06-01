@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
@@ -19,6 +20,11 @@ public class ProdutoController {
     @GetMapping("/api/produtores/{produtorId}/produtos")
     public List<ProdutoDTO> listar(@PathVariable Long produtorId) {
         return service.listarPorProdutor(produtorId);
+    }
+
+    @GetMapping("/api/produtos/contagem")
+    public Map<Long, Long> contagem() {
+        return service.contagemPorProdutor();
     }
 
     @PostMapping("/api/produtos")

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { produtorService } from "../services/produtorService";
 import { eventoService } from "../services/eventoService";
 import { enrichProdutor, formatEventShort, CATS_PRINCIPAIS } from "../utils/produtorUtils";
-import { CATEGORIAS_PRODUTO } from "../services/produtoService";
+import { CATEGORIAS_PRODUTO, produtoService } from "../services/produtoService";
 import { EVENTOS as MOCK_EVENTOS } from "../data/eventosMock";
 
 export default function HomePage() {
@@ -14,7 +14,18 @@ export default function HomePage() {
   const [catExpandida, setCatExpandida] = useState(false);
 
   useEffect(() => {
-    produtorService.listar().then((data) => setProdutores(data.map(enrichProdutor))).catch(() => {});
+    Promise.all([
+      produtorService.listar(),
+      produtoService.contagemPorProdutor().catch(() => ({})),
+    ])
+      .then(([produtoresData, contagem]) => {
+        const enriquecidos = produtoresData.map((p) =>
+          enrichProdutor({ ...p, totalProdutos: contagem[p.id] ?? p.totalProdutos ?? 0 })
+        );
+        setProdutores(enriquecidos);
+      })
+      .catch(() => {});
+
     eventoService.listarAtivos()
       .then((data) => setEventos(data.length > 0 ? data : MOCK_EVENTOS))
       .catch(() => setEventos(MOCK_EVENTOS));
