@@ -16,5 +16,8 @@ public record ProdutorDTO(
         String endereco,
         Integer anoInicio,
         String fotoProducaoUrl,
-        String categoriaProd
+        String categoriaProd,
+        Integer totalProdutos,
+        Double mediaAvaliacoes,
+        Integer totalAvaliacoes
 ) {}

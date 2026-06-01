@@ -1,16 +1,16 @@
 import { formatDateRange } from "../utils/produtorUtils";
 
 const TIPO_CONFIG = {
-  Feira:          { bg: "bg-emerald-600",  label: "Feira" },
-  Festival:       { bg: "bg-purple-600",   label: "Festival" },
-  Exposição:      { bg: "bg-blue-600",     label: "Exposição" },
-  "Evento Cultural": { bg: "bg-amber-600", label: "Evento Cultural" },
+  Feira:             { bg: "bg-emerald-600",  label: "Feira" },
+  Capacitação:       { bg: "bg-purple-600",   label: "Capacitação" },
+  Exposição:         { bg: "bg-blue-600",     label: "Exposição" },
+  "Evento Cultural": { bg: "bg-amber-600",    label: "Evento Cultural" },
 };
 
 const GRADIENTES = {
-  Feira:          "from-emerald-900/80",
-  Festival:       "from-purple-900/80",
-  Exposição:      "from-blue-900/80",
+  Feira:             "from-emerald-900/80",
+  Capacitação:       "from-purple-900/80",
+  Exposição:         "from-blue-900/80",
   "Evento Cultural": "from-amber-900/80",
 };
 

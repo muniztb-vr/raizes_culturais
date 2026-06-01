@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
     List<Produto> findByProdutorId(Long produtorId);
+    int countByProdutorId(Long produtorId);
 }

@@ -9,16 +9,12 @@ export const produtoService = {
 };
 
 export const CATEGORIAS_PRODUTO = [
-  { value: "CAFE",          label: "Café",                   icon: "☕", cor: "#78350F" },
-  { value: "MEL",           label: "Mel & Apicultura",       icon: "🍯", cor: "#D97706" },
-  { value: "CACHACA",       label: "Cachaça Artesanal",      icon: "🥃", cor: "#92400E" },
-  { value: "ARTESANATO",    label: "Artesanato",             icon: "🏺", cor: "#7C3AED" },
-  { value: "LATICINIOS",    label: "Laticínios & Queijos",   icon: "🧀", cor: "#B45309" },
-  { value: "AGROINDUSTRIA", label: "Agroindústria",          icon: "🌾", cor: "#15803D" },
-  { value: "PESCA",         label: "Pesca Artesanal",        icon: "🐟", cor: "#0369A1" },
-  { value: "HORTIFRUTI",    label: "Hortifruti & Orgânicos", icon: "🥬", cor: "#16A34A" },
-  { value: "COSMETICOS",    label: "Cosméticos Naturais",    icon: "🌸", cor: "#DB2777" },
-  { value: "DOCES",         label: "Doces & Conservas",      icon: "🍬", cor: "#EA580C" },
+  { value: "CAFES",                   label: "Cafés",                         icon: "☕", cor: "#78350F" },
+  { value: "AGROINDUSTRIA",           label: "Agroindústria",                 icon: "🌾", cor: "#15803D" },
+  { value: "HORTIFRUTI_ORGANICO",     label: "Hortifrúti Orgânico",           icon: "🥬", cor: "#16A34A" },
+  { value: "HORTIFRUTI_AGROECOLOGICO",label: "Hortifrúti Agroecológicos",     icon: "🌿", cor: "#166534" },
+  { value: "ARTESANATO",              label: "Artesanatos",                   icon: "🏺", cor: "#7C3AED" },
+  { value: "LICORES_CACHACAS",        label: "Licores e Cachaças Artesanais", icon: "🥃", cor: "#92400E" },
 ];
 
 export const FORM_PRODUTO_VAZIO = {

@@ -230,7 +230,7 @@ function AbaEventos({ onToast }) {
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-forest-green">Tipo</label>
               <select name="tipo" value={form.tipo} onChange={change} className={CAMPO}>
-                {["Feira","Festival","Exposição","Evento Cultural"].map(t => <option key={t}>{t}</option>)}
+                {["Feira","Capacitação","Exposição","Evento Cultural"].map(t => <option key={t}>{t}</option>)}
               </select>
             </div>
             <div className="flex flex-col gap-1">

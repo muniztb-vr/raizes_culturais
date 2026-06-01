@@ -51,12 +51,18 @@ export default function ProducerListItem({ produtor }) {
           </p>
         )}
         <div className="flex items-center gap-2 mt-1.5 text-[11px] text-forest-green/60">
-          <span className="flex items-center gap-0.5">
-            <span className="text-yellow-500">★</span>
-            {produtor.avaliacao}
-          </span>
-          <span>· {produtor.totalAvaliacoes} avaliações</span>
-          <span>· {produtor.totalProdutos} produtos</span>
+          {produtor.totalAvaliacoes > 0 ? (
+            <>
+              <span className="flex items-center gap-0.5">
+                <span className="text-yellow-500">★</span>
+                {produtor.avaliacao}
+              </span>
+              <span>· {produtor.totalAvaliacoes} avaliações</span>
+            </>
+          ) : (
+            <span className="text-forest-green/40 italic">Nenhuma avaliação</span>
+          )}
+          <span>· {produtor.totalProdutos} produto{produtor.totalProdutos !== 1 ? "s" : ""}</span>
         </div>
       </div>
 

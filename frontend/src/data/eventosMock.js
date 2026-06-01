@@ -41,8 +41,8 @@ export const EVENTOS = [
   },
   {
     id: 3,
-    nome: "Festival de Cultura Caiçara",
-    tipo: "Festival",
+    nome: "Capacitação de Cultura Caiçara",
+    tipo: "Capacitação",
     dataInicio: "2026-07-20",
     dataFim: "2026-07-22",
     local: "Orla da Praia",

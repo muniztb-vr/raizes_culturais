@@ -1,10 +1,12 @@
 package br.edu.raizesculturais.model;
 
 public enum Categoria {
+    CAFES("Cafés"),
     AGROINDUSTRIA("Agroindústria"),
-    ARTESANATO("Artesanato"),
-    LATICINIOS("Laticínios"),
-    CAFE("Café");
+    HORTIFRUTI_ORGANICO("Hortifrúti Orgânico"),
+    HORTIFRUTI_AGROECOLOGICO("Hortifrúti Agroecológicos"),
+    ARTESANATO("Artesanatos"),
+    LICORES_CACHACAS("Licores e Cachaças Artesanais");
 
     private final String label;
 

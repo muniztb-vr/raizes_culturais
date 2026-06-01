@@ -4,6 +4,7 @@ import br.edu.raizesculturais.dto.CadastroDTO;
 import br.edu.raizesculturais.dto.LoginDTO;
 import br.edu.raizesculturais.dto.ProdutorDTO;
 import br.edu.raizesculturais.model.Produtor;
+import br.edu.raizesculturais.repository.AvaliacaoRepository;
 import br.edu.raizesculturais.repository.ParticipacaoRepository;
 import br.edu.raizesculturais.repository.ProdutoRepository;
 import br.edu.raizesculturais.repository.ProdutorRepository;
@@ -24,6 +25,7 @@ public class ProdutorService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final ProdutoRepository produtoRepository;
     private final ParticipacaoRepository participacaoRepository;
+    private final AvaliacaoRepository avaliacaoRepository;
 
     // ── Listagem / Busca ─────────────────────────────────────────────────────
 
@@ -133,11 +135,16 @@ public class ProdutorService {
     }
 
     public ProdutorDTO toDTO(Produtor p) {
+        int totalProdutos = produtoRepository.countByProdutorId(p.getId());
+        int totalAvaliacoes = avaliacaoRepository.countByProdutorId(p.getId());
+        Double media = avaliacaoRepository.calcularMediaPorProdutor(p.getId());
+        Double mediaAvaliacoes = media != null ? Math.round(media * 10.0) / 10.0 : 0.0;
         return new ProdutorDTO(
                 p.getId(), p.getNome(), p.getBio(), p.getLocalidade(),
                 p.getContato(), p.getFotoUrl(), p.getEmail(), p.getNarrativa(),
                 p.getCpf(), p.getMunicipio(), p.getEndereco(),
-                p.getAnoInicio(), p.getFotoProducaoUrl(), p.getCategoriaProd());
+                p.getAnoInicio(), p.getFotoProducaoUrl(), p.getCategoriaProd(),
+                totalProdutos, mediaAvaliacoes, totalAvaliacoes);
     }
 
     private Produtor toEntity(ProdutorDTO dto) {

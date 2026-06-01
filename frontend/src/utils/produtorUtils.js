@@ -8,7 +8,6 @@ function hash(id) {
 
 export function enrichProdutor(p) {
   const h = hash(p.id || 1);
-  // Usa sempre o campo real do banco — sem derivação por bio
   const cat = CATEGORIAS_PRODUTO.find((c) => c.value === p.categoriaProd) || CAT_FALLBACK;
   const anosAtivo = p.anoInicio ? new Date().getFullYear() - p.anoInicio : 5 + (h % 35);
   return {
@@ -16,12 +15,11 @@ export function enrichProdutor(p) {
     catLabel: cat.label,
     catIcon: cat.icon,
     catColor: cat.cor,
-    // Mantido para componentes que ainda lêem p.categoria
     categoria: cat.label,
     verificado: (h % 3) !== 0,
-    avaliacao: Number((4.4 + (h % 7) / 15).toFixed(1)),
-    totalAvaliacoes: 40 + (h % 180),
-    totalProdutos: 8 + (h % 60),
+    avaliacao: p.mediaAvaliacoes != null ? Number(p.mediaAvaliacoes.toFixed(1)) : 0,
+    totalAvaliacoes: p.totalAvaliacoes ?? 0,
+    totalProdutos: p.totalProdutos ?? 0,
     seguidores: 300 + (h % 2000),
     anosAtivo,
     desde: new Date().getFullYear() - anosAtivo,
@@ -52,5 +50,5 @@ export function formatEventShort(evento) {
   return `${d.getDate()} de ${cap} · ${evento.cidade}, ${evento.estado}`;
 }
 
-// Categorias principais exibidas por padrão nos filtros
-export const CATS_PRINCIPAIS = ["CAFE", "AGROINDUSTRIA", "LATICINIOS", "ARTESANATO"];
+// Categorias principais exibidas por padrão nos filtros (primeiras 4)
+export const CATS_PRINCIPAIS = ["CAFES", "AGROINDUSTRIA", "ARTESANATO", "HORTIFRUTI_ORGANICO"];
