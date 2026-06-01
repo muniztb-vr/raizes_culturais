@@ -6,7 +6,8 @@ public enum Categoria {
     HORTIFRUTI_ORGANICO("Hortifrúti Orgânico"),
     HORTIFRUTI_AGROECOLOGICO("Hortifrúti Agroecológicos"),
     ARTESANATO("Artesanatos"),
-    LICORES_CACHACAS("Licores e Cachaças Artesanais");
+    LICORES_CACHACAS("Licores e Cachaças Artesanais"),
+    COSMETICOS("Cosméticos Naturais");
 
     private final String label;
 

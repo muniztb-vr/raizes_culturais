@@ -15,6 +15,7 @@ export const CATEGORIAS_PRODUTO = [
   { value: "HORTIFRUTI_AGROECOLOGICO",label: "Hortifrúti Agroecológicos",     icon: "🌿", cor: "#166534" },
   { value: "ARTESANATO",              label: "Artesanatos",                   icon: "🏺", cor: "#7C3AED" },
   { value: "LICORES_CACHACAS",        label: "Licores e Cachaças Artesanais", icon: "🥃", cor: "#92400E" },
+  { value: "COSMETICOS",              label: "Cosméticos Naturais",           icon: "🌸", cor: "#DB2777" },
 ];
 
 export const FORM_PRODUTO_VAZIO = {
