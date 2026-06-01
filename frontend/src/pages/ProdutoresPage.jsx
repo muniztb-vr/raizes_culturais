@@ -15,20 +15,25 @@ export default function ProdutoresPage() {
   const busca = searchParams.get("q") || "";
 
   useEffect(() => {
+    let mounted = true;
     produtorService.listar()
-      .then(async (lista) => {
-        const contagens = await Promise.all(
+      .then((lista) =>
+        Promise.all(
           lista.map((p) =>
             produtoService.listarPorProdutor(p.id)
               .then((prods) => ({ id: p.id, total: prods.length }))
               .catch(() => ({ id: p.id, total: 0 }))
           )
-        );
-        const mapa = Object.fromEntries(contagens.map((c) => [c.id, c.total]));
-        setProdutores(lista.map((p) => enrichProdutor({ ...p, totalProdutos: mapa[p.id] ?? 0 })));
-      })
-      .catch(() => setErro("Não foi possível carregar os produtores."))
-      .finally(() => setCarregando(false));
+        ).then((contagens) => {
+          if (!mounted) return;
+          const mapa = {};
+          contagens.forEach((c) => { mapa[c.id] = c.total; });
+          setProdutores(lista.map((p) => enrichProdutor({ ...p, totalProdutos: mapa[p.id] ?? 0 })));
+        })
+      )
+      .catch(() => { if (mounted) setErro("Não foi possível carregar os produtores."); })
+      .finally(() => { if (mounted) setCarregando(false); });
+    return () => { mounted = false; };
   }, []);
 
   const catsPrincipais = CATEGORIAS_PRODUTO.filter((c) => CATS_PRINCIPAIS.includes(c.value));
