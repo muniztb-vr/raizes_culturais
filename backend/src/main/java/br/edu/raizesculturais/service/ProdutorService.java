@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,20 +29,47 @@ public class ProdutorService {
     private final ParticipacaoRepository participacaoRepository;
     private final AvaliacaoRepository avaliacaoRepository;
 
-    // ── Listagem / Busca ─────────────────────────────────────────────────────
+    // ── Listagem ──────────────────────────────────────────────────────────────
 
+    @Transactional(readOnly = true)
     public List<ProdutorDTO> listarTodos() {
-        return repository.findAll().stream().map(this::toDTO).toList();
+        List<Produtor> produtores = repository.findAll();
+
+        // 1 query: contagem de produtos por produtor
+        Map<Long, Long> contagemProdutos = new HashMap<>();
+        for (Object[] row : produtoRepository.contarPorProdutor()) {
+            contagemProdutos.put((Long) row[0], (Long) row[1]);
+        }
+
+        // 1 query: contagem e média de avaliações por produtor
+        Map<Long, long[]> statsAvaliacoes = new HashMap<>();
+        for (Object[] row : avaliacaoRepository.estatisticasPorProdutor()) {
+            Long produtorId = (Long) row[0];
+            long count = (Long) row[1];
+            Double avg = (Double) row[2];
+            statsAvaliacoes.put(produtorId, new long[]{count, avg != null ? Math.round(avg * 10) : 0});
+        }
+
+        return produtores.stream()
+                .map(p -> toDTO(p, contagemProdutos, statsAvaliacoes))
+                .toList();
     }
 
+    @Transactional(readOnly = true)
     public ProdutorDTO buscarPorId(Long id) {
-        return toDTO(findOrThrow(id));
+        Produtor p = findOrThrow(id);
+        long totalProdutos = produtoRepository.contarPorProdutorId(p.getId());
+        long totalAvaliacoes = avaliacaoRepository.contarPorProdutorId(p.getId());
+        Double media = avaliacaoRepository.calcularMediaPorProdutor(p.getId());
+        double mediaAvaliacoes = media != null ? Math.round(media * 10.0) / 10.0 : 0.0;
+        return toDTO(p, (int) totalProdutos, mediaAvaliacoes, (int) totalAvaliacoes);
     }
 
     // ── CRUD padrão ──────────────────────────────────────────────────────────
 
     public ProdutorDTO criar(ProdutorDTO dto) {
-        return toDTO(repository.save(toEntity(dto)));
+        Produtor saved = repository.save(toEntity(dto));
+        return toDTO(saved, 0, 0.0, 0);
     }
 
     public ProdutorDTO atualizar(Long id, ProdutorDTO dto) {
@@ -55,13 +84,13 @@ public class ProdutorService {
         p.setAnoInicio(dto.anoInicio());
         p.setFotoProducaoUrl(dto.fotoProducaoUrl());
         p.setCategoriaProd(dto.categoriaProd());
-        return toDTO(repository.save(p));
+        Produtor saved = repository.save(p);
+        return buscarPorId(saved.getId());
     }
 
     @Transactional
     public void deletar(Long id) {
         findOrThrow(id);
-        // Cascade manual: remove produtos e participações vinculadas
         produtoRepository.deleteAll(produtoRepository.findByProdutorId(id));
         participacaoRepository.deleteAll(participacaoRepository.findByProdutorId(id));
         repository.deleteById(id);
@@ -88,7 +117,7 @@ public class ProdutorService {
                 .fotoProducaoUrl(dto.fotoProducaoUrl())
                 .categoriaProd(dto.categoriaProd())
                 .build();
-        return toDTO(repository.save(p));
+        return toDTO(repository.save(p), 0, 0.0, 0);
     }
 
     public ProdutorDTO login(LoginDTO dto) {
@@ -98,10 +127,10 @@ public class ProdutorService {
         if (!passwordEncoder.matches(dto.senha(), p.getSenha())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "E-mail ou senha incorretos.");
         }
-        return toDTO(p);
+        return buscarPorId(p.getId());
     }
 
-    // ── Configurações (atualiza todos os dados cadastrais) ────────────────────
+    // ── Configurações ─────────────────────────────────────────────────────────
 
     public ProdutorDTO atualizarConfiguracoes(Long id, ProdutorDTO dto) {
         Produtor p = findOrThrow(id);
@@ -115,7 +144,8 @@ public class ProdutorService {
         p.setFotoUrl(dto.fotoUrl());
         p.setFotoProducaoUrl(dto.fotoProducaoUrl());
         p.setCategoriaProd(dto.categoriaProd());
-        return toDTO(repository.save(p));
+        Produtor saved = repository.save(p);
+        return buscarPorId(saved.getId());
     }
 
     // ── Narrativa IA ─────────────────────────────────────────────────────────
@@ -123,7 +153,7 @@ public class ProdutorService {
     public ProdutorDTO atualizarNarrativa(Long id, String narrativa) {
         Produtor p = findOrThrow(id);
         p.setNarrativa(narrativa);
-        return toDTO(repository.save(p));
+        return buscarPorId(repository.save(p).getId());
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -134,11 +164,16 @@ public class ProdutorService {
                         HttpStatus.NOT_FOUND, "Produtor não encontrado: " + id));
     }
 
-    public ProdutorDTO toDTO(Produtor p) {
-        int totalProdutos = produtoRepository.countByProdutorId(p.getId());
-        int totalAvaliacoes = avaliacaoRepository.countByProdutorId(p.getId());
-        Double media = avaliacaoRepository.calcularMediaPorProdutor(p.getId());
-        Double mediaAvaliacoes = media != null ? Math.round(media * 10.0) / 10.0 : 0.0;
+    private ProdutorDTO toDTO(Produtor p, Map<Long, Long> contagemProdutos,
+                               Map<Long, long[]> statsAvaliacoes) {
+        long totalProdutos = contagemProdutos.getOrDefault(p.getId(), 0L);
+        long[] stats = statsAvaliacoes.getOrDefault(p.getId(), new long[]{0, 0});
+        long totalAvaliacoes = stats[0];
+        double mediaAvaliacoes = totalAvaliacoes > 0 ? stats[1] / 10.0 : 0.0;
+        return toDTO(p, (int) totalProdutos, mediaAvaliacoes, (int) totalAvaliacoes);
+    }
+
+    private ProdutorDTO toDTO(Produtor p, int totalProdutos, double mediaAvaliacoes, int totalAvaliacoes) {
         return new ProdutorDTO(
                 p.getId(), p.getNome(), p.getBio(), p.getLocalidade(),
                 p.getContato(), p.getFotoUrl(), p.getEmail(), p.getNarrativa(),
