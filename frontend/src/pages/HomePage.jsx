@@ -203,8 +203,15 @@ export default function HomePage() {
                       <span>{p.catIcon}</span>
                       {p.catLabel}
                     </p>
-                    <p className="text-[11px] text-forest-green/55 mt-1">
-                      ★ {p.avaliacao} ({p.totalAvaliacoes})
+                    {p.totalAvaliacoes > 0 ? (
+                      <p className="text-[11px] text-forest-green/55 mt-1">
+                        ★ {p.avaliacao} ({p.totalAvaliacoes})
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-forest-green/40 mt-1 italic">Sem avaliações</p>
+                    )}
+                    <p className="text-[11px] text-forest-green/55 mt-0.5 font-medium">
+                      {p.totalProdutos} produto{p.totalProdutos !== 1 ? "s" : ""}
                     </p>
                   </div>
                 </button>
