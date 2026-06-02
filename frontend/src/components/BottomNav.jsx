@@ -53,8 +53,16 @@ function LoginIcon({ active }) {
 }
 
 function proximoEventoDaLista(eventos) {
-  const hoje = new Date();
-  return eventos.find((e) => new Date((e.dataFim || e.dataInicio) + "T23:59:59") >= hoje) || null;
+  const inicioDia = new Date();
+  inicioDia.setHours(0, 0, 0, 0); // meia-noite de hoje — evento ainda vale até o fim do dia
+  return (
+    eventos
+      .filter((e) => {
+        const ref = e.dataFim || e.dataInicio;
+        return ref && new Date(ref + "T23:59:59") >= inicioDia;
+      })
+      .sort((a, b) => new Date(a.dataInicio) - new Date(b.dataInicio))[0] || null
+  );
 }
 
 export default function BottomNav() {
