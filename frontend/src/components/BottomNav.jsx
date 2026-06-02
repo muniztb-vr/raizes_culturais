@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { eventoService } from "../services/eventoService";
-import { proximoEvento } from "../data/eventosMock";
 import { formatEventShort } from "../utils/produtorUtils";
 import { useAuth } from "../context/AuthContext";
 
@@ -61,19 +60,13 @@ function proximoEventoDaLista(eventos) {
 export default function BottomNav() {
   const { produtor } = useAuth();
   const navigate = useNavigate();
-  const [proximo, setProximo] = useState(null);
+  const [proximo, setProximo] = useState(undefined); // undefined = carregando, null = sem eventos
   const [bannerVisivel, setBannerVisivel] = useState(true);
 
   useEffect(() => {
     eventoService.listarAtivos()
-      .then((data) => {
-        if (data.length > 0) {
-          setProximo(proximoEventoDaLista(data));
-        } else {
-          setProximo(proximoEvento());
-        }
-      })
-      .catch(() => setProximo(proximoEvento()));
+      .then((data) => setProximo(proximoEventoDaLista(data)))
+      .catch(() => setProximo(null));
   }, []);
 
   const TABS = [
@@ -89,38 +82,60 @@ export default function BottomNav() {
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
 
-      {/* Banner Próximo Evento com botão de fechar */}
-      {proximo && bannerVisivel && (
+      {/* Banner — só mostra após carregar e se o usuário não fechou */}
+      {proximo !== undefined && bannerVisivel && (
         <div className="px-4 pt-2 pb-0">
-          <div className="bg-forest-green rounded-2xl px-4 py-3 flex items-center gap-3 shadow-xl relative">
+          <div className="bg-forest-green rounded-2xl px-4 py-3 flex items-center gap-3 shadow-xl">
 
-            {/* Conteúdo clicável */}
-            <button
-              onClick={() => navigate("/eventos")}
-              className="flex items-center gap-3 flex-1 min-w-0 text-left"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="text-old-gold text-[10px] font-bold uppercase tracking-widest">
-                  Próximo Evento
-                </p>
-                <p className="text-silk-cream text-sm font-semibold leading-tight mt-0.5 truncate">
-                  {proximo.nome}
-                </p>
-                <p className="text-silk-cream/60 text-xs mt-0.5">
-                  {formatEventShort(proximo)}
-                </p>
-              </div>
-              <div className="shrink-0 w-9 h-9 bg-old-gold rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-forest-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </button>
+            {proximo ? (
+              /* ── Evento real ── */
+              <button
+                onClick={() => navigate("/eventos")}
+                className="flex items-center gap-3 flex-1 min-w-0 text-left"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-old-gold text-[10px] font-bold uppercase tracking-widest">
+                    Próximo Evento
+                  </p>
+                  <p className="text-silk-cream text-sm font-semibold leading-tight mt-0.5 truncate">
+                    {proximo.nome}
+                  </p>
+                  <p className="text-silk-cream/60 text-xs mt-0.5">
+                    {formatEventShort(proximo)}
+                  </p>
+                </div>
+                <div className="shrink-0 w-9 h-9 bg-old-gold rounded-full flex items-center justify-center">
+                  <svg className="w-4 h-4 text-forest-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
+            ) : (
+              /* ── Sem eventos cadastrados ── */
+              <button
+                onClick={() => navigate("/eventos")}
+                className="flex items-center gap-3 flex-1 min-w-0 text-left"
+              >
+                <div className="shrink-0 w-9 h-9 bg-old-gold/20 rounded-full flex items-center justify-center">
+                  <svg className="w-4 h-4 text-old-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-old-gold text-[10px] font-bold uppercase tracking-widest">
+                    Eventos
+                  </p>
+                  <p className="text-silk-cream/70 text-sm leading-tight mt-0.5">
+                    Aguarde o próximo evento
+                  </p>
+                </div>
+              </button>
+            )}
 
-            {/* Botão fechar — área de toque 44×44px */}
+            {/* Botão fechar */}
             <button
               onClick={() => setBannerVisivel(false)}
-              aria-label="Fechar banner de evento"
+              aria-label="Fechar banner"
               className="shrink-0 -mr-1 w-11 h-11 flex items-center justify-center
                 rounded-full text-silk-cream/50 hover:text-silk-cream
                 hover:bg-white/10 active:bg-white/20 transition-colors"
