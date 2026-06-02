@@ -1,7 +1,17 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { produtoService } from "../services/produtoService";
 
 export default function ProducerListItem({ produtor }) {
   const navigate = useNavigate();
+  const [totalProdutos, setTotalProdutos] = useState(produtor.totalProdutos ?? 0);
+
+  useEffect(() => {
+    produtoService
+      .listarPorProdutor(produtor.id)
+      .then((prods) => setTotalProdutos(prods.length))
+      .catch(() => {});
+  }, [produtor.id]);
 
   return (
     <article
@@ -62,7 +72,7 @@ export default function ProducerListItem({ produtor }) {
           ) : (
             <span className="text-forest-green/40 italic">Nenhuma avaliação</span>
           )}
-          <span>· {produtor.totalProdutos} produto{produtor.totalProdutos !== 1 ? "s" : ""}</span>
+          <span>· {totalProdutos} produto{totalProdutos !== 1 ? "s" : ""}</span>
         </div>
       </div>
 
