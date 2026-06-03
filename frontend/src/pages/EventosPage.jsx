@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
 import { eventoService } from "../services/eventoService";
-import { EVENTOS as MOCK_EVENTOS } from "../data/eventosMock";
 import EventCard from "../components/EventCard";
 import EventDetailModal from "../components/EventDetailModal";
 import ParticipacaoModal from "../components/ParticipacaoModal";
@@ -26,12 +25,9 @@ function normalizar(ev) {
   };
 }
 
-const CIDADES_MOCK = ["Todas", ...new Set(MOCK_EVENTOS.map((e) => `${e.cidade}, ${e.estado}`))];
-
 export default function EventosPage() {
   const [eventos, setEventos] = useState([]);
   const [carregando, setCarregando] = useState(true);
-  const [usandoMock, setUsandoMock] = useState(false);
   const [selectedEvento, setSelectedEvento] = useState(null);
   const [inscricaoEvento, setInscricaoEvento] = useState(null);
   const [cidadeFiltro, setCidadeFiltro] = useState("Todas");
@@ -40,22 +36,11 @@ export default function EventosPage() {
   useEffect(() => {
     eventoService.listarAtivos()
       .then((data) => {
-        if (data.length === 0) {
-          // Sem eventos no DB ainda — usa mock como fallback
-          setEventos(MOCK_EVENTOS.map(normalizar));
-          setUsandoMock(true);
-          setVagas(initVagas(MOCK_EVENTOS.map(normalizar)));
-        } else {
-          const norm = data.map(normalizar);
-          setEventos(norm);
-          setVagas(initVagas(norm));
-        }
+        const norm = data.map(normalizar);
+        setEventos(norm);
+        setVagas(initVagas(norm));
       })
-      .catch(() => {
-        setEventos(MOCK_EVENTOS.map(normalizar));
-        setUsandoMock(true);
-        setVagas(initVagas(MOCK_EVENTOS.map(normalizar)));
-      })
+      .catch(() => {})
       .finally(() => setCarregando(false));
   }, []);
 
@@ -124,6 +109,11 @@ export default function EventosPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[1,2].map((i) => <div key={i} className="h-64 bg-white rounded-2xl animate-pulse" />)}
           </div>
+        ) : eventos.length === 0 ? (
+          <div className="text-center py-16 bg-white/50 rounded-3xl border-2 border-dashed border-forest-green/10">
+            <p className="text-forest-green/40 font-medium">Nenhum evento cadastrado no momento.</p>
+            <p className="text-forest-green/30 text-sm mt-1">Aguarde os próximos eventos.</p>
+          </div>
         ) : eventosFiltrados.length === 0 ? (
           <div className="text-center py-16 bg-white/50 rounded-3xl border-2 border-dashed border-forest-green/10">
             <p className="text-forest-green/40 font-medium">Nenhum evento encontrado para esta localidade.</p>
@@ -137,7 +127,6 @@ export default function EventosPage() {
             <p className="text-sm text-forest-green/50 mb-5">
               {eventosFiltrados.length} evento{eventosFiltrados.length !== 1 ? "s" : ""}
               {cidadeFiltro !== "Todas" ? ` em ${cidadeFiltro}` : " encontrados"}
-              {usandoMock && <span className="ml-2 text-xs text-old-gold/70">(demonstração)</span>}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {eventosFiltrados.map((ev) => (

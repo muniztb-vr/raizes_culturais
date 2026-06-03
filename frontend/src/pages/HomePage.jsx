@@ -4,8 +4,6 @@ import { produtorService } from "../services/produtorService";
 import { eventoService } from "../services/eventoService";
 import { enrichProdutor, formatEventShort, CATS_PRINCIPAIS } from "../utils/produtorUtils";
 import { CATEGORIAS_PRODUTO, produtoService } from "../services/produtoService";
-import { EVENTOS as MOCK_EVENTOS } from "../data/eventosMock";
-
 export default function HomePage() {
   const navigate = useNavigate();
   const [produtores, setProdutores] = useState([]);
@@ -29,8 +27,8 @@ export default function HomePage() {
       .catch(() => {});
 
     eventoService.listarAtivos()
-      .then((data) => setEventos(data.length > 0 ? data : MOCK_EVENTOS))
-      .catch(() => setEventos(MOCK_EVENTOS));
+      .then((data) => setEventos(data))
+      .catch(() => {});
   }, []);
 
   function handleBusca(e) {
@@ -251,31 +249,37 @@ export default function HomePage() {
             </button>
           </div>
 
-          <div className="flex flex-col gap-3">
-            {eventos.slice(0, 2).map((ev) => (
-              <button
-                key={ev.id}
-                onClick={() => navigate("/eventos")}
-                className="flex gap-3 bg-white rounded-2xl p-3 shadow-sm text-left hover:shadow-md active:scale-[0.99] transition-all"
-              >
-                <img
-                  src={ev.fotoUrl || ev.imagem}
-                  alt={ev.nome}
-                  className="w-16 h-16 rounded-xl object-cover shrink-0"
-                  onError={(e) => { e.target.style.display = "none"; }}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-forest-green text-sm leading-tight">{ev.nome}</p>
-                  <p className="text-xs text-forest-green/55 mt-0.5">📅 {formatEventShort(ev)}</p>
-                  {ev.entradaGratuita && (
-                    <span className="inline-block mt-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                      Gratuito
-                    </span>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
+          {eventos.length === 0 ? (
+            <p className="text-sm text-forest-green/40 italic py-4">
+              Nenhum evento cadastrado no momento.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {eventos.slice(0, 2).map((ev) => (
+                <button
+                  key={ev.id}
+                  onClick={() => navigate("/eventos")}
+                  className="flex gap-3 bg-white rounded-2xl p-3 shadow-sm text-left hover:shadow-md active:scale-[0.99] transition-all"
+                >
+                  <img
+                    src={ev.fotoUrl || ev.imagem}
+                    alt={ev.nome}
+                    className="w-16 h-16 rounded-xl object-cover shrink-0"
+                    onError={(e) => { e.target.style.display = "none"; }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-forest-green text-sm leading-tight">{ev.nome}</p>
+                    <p className="text-xs text-forest-green/55 mt-0.5">📅 {formatEventShort(ev)}</p>
+                    {ev.entradaGratuita && (
+                      <span className="inline-block mt-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                        Gratuito
+                      </span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>
