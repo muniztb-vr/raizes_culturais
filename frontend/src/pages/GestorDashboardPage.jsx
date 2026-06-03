@@ -7,7 +7,7 @@ import { authService } from "../services/authService";
 import { dicaService } from "../services/dicaService";
 import { mensagemService } from "../services/mensagemService";
 import { useAuth } from "../context/AuthContext";
-import { CATEGORIAS_PRODUTO } from "../services/produtoService";
+import { produtoService, CATEGORIAS_PRODUTO } from "../services/produtoService";
 import CampoFotoUpload from "../components/CampoFotoUpload";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -345,6 +345,352 @@ function AbaEventos({ onToast }) {
   );
 }
 
+// ── Modal: Editar Produtor + Produtos ─────────────────────────────────────────
+
+function ModalEditarProdutor({ produtor, onClose, onToast, onAtualizado }) {
+  const [aba, setAba] = useState("dados");
+  const [form, setForm] = useState({
+    nome: produtor.nome || "",
+    email: produtor.email || "",
+    cpf: produtor.cpf || "",
+    municipio: produtor.municipio || "",
+    localidade: produtor.localidade || "",
+    endereco: produtor.endereco || "",
+    contato: produtor.contato || "",
+    categoriaProd: produtor.categoriaProd || "",
+    anoInicio: produtor.anoInicio ? String(produtor.anoInicio) : "",
+    bio: produtor.bio || "",
+    fotoUrl: produtor.fotoUrl || "",
+    fotoProducaoUrl: produtor.fotoProducaoUrl || "",
+  });
+  const [salvando, setSalvando] = useState(false);
+
+  const [produtos, setProdutos] = useState([]);
+  const [loadProd, setLoadProd] = useState(false);
+  const [produtoEditId, setProdutoEditId] = useState(null);
+  const [showNovoProduto, setShowNovoProduto] = useState(false);
+  const FORM_PROD_VAZIO = { nome: "", quantidade: 1, descricao: "", contato: "", categoria: "ARTESANATO", preco: "", fotoUrl: "" };
+  const [formProd, setFormProd] = useState(FORM_PROD_VAZIO);
+  const [salvandoProd, setSalvandoProd] = useState(false);
+
+  const carregarProdutos = useCallback(() => {
+    setLoadProd(true);
+    produtoService.listarPorProdutor(produtor.id)
+      .then(setProdutos)
+      .finally(() => setLoadProd(false));
+  }, [produtor.id]);
+
+  useEffect(() => {
+    if (aba === "produtos") carregarProdutos();
+  }, [aba, carregarProdutos]);
+
+  const change = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const changeProd = (e) => setFormProd((p) => ({ ...p, [e.target.name]: e.target.value }));
+
+  async function handleSalvarDados(e) {
+    e.preventDefault();
+    setSalvando(true);
+    try {
+      await produtorService.atualizar(produtor.id, {
+        id: produtor.id,
+        ...form,
+        anoInicio: form.anoInicio ? Number(form.anoInicio) : null,
+        narrativa: produtor.narrativa || null,
+        totalProdutos: produtor.totalProdutos ?? 0,
+        mediaAvaliacoes: produtor.mediaAvaliacoes ?? 0,
+        totalAvaliacoes: produtor.totalAvaliacoes ?? 0,
+      });
+      onToast("Dados do produtor atualizados!");
+      onAtualizado();
+    } catch {
+      onToast("Erro ao salvar dados.", "erro");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  function iniciarEditProduto(prod) {
+    setShowNovoProduto(false);
+    setProdutoEditId(prod.id);
+    setFormProd({
+      nome: prod.nome || "",
+      quantidade: prod.quantidade ?? 1,
+      descricao: prod.descricao || "",
+      contato: prod.contato || "",
+      categoria: prod.categoria || "ARTESANATO",
+      preco: prod.preco || "",
+      fotoUrl: prod.fotoUrl || "",
+    });
+  }
+
+  function cancelarEditProduto() {
+    setProdutoEditId(null);
+    setShowNovoProduto(false);
+    setFormProd(FORM_PROD_VAZIO);
+  }
+
+  async function handleSalvarProduto(e) {
+    e.preventDefault();
+    setSalvandoProd(true);
+    try {
+      const payload = {
+        ...formProd,
+        quantidade: Number(formProd.quantidade) || 0,
+        produtorId: produtor.id,
+      };
+      if (produtoEditId) {
+        await produtoService.atualizar(produtoEditId, { ...payload, id: produtoEditId });
+        onToast("Produto atualizado!");
+      } else {
+        await produtoService.criar(payload);
+        onToast("Produto cadastrado!");
+      }
+      cancelarEditProduto();
+      carregarProdutos();
+    } catch {
+      onToast("Erro ao salvar produto.", "erro");
+    } finally {
+      setSalvandoProd(false);
+    }
+  }
+
+  async function handleDeletarProduto(id, nome) {
+    if (!confirm(`Excluir o produto "${nome}"?`)) return;
+    try {
+      await produtoService.deletar(id);
+      onToast("Produto excluído.");
+      carregarProdutos();
+    } catch {
+      onToast("Erro ao excluir produto.", "erro");
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-2xl flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+
+        {/* Cabeçalho */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-forest-green/10 shrink-0">
+          <div>
+            <h3 className="font-serif text-base font-bold text-forest-green">Editar Produtor</h3>
+            <p className="text-xs text-forest-green/50 mt-0.5">{produtor.nome}</p>
+          </div>
+          <button onClick={onClose}
+            className="w-8 h-8 rounded-xl text-forest-green/40 hover:text-forest-green hover:bg-forest-green/5 flex items-center justify-center text-xl transition-colors">
+            ✕
+          </button>
+        </div>
+
+        {/* Abas */}
+        <div className="flex border-b border-forest-green/10 shrink-0">
+          {[["dados", "📋 Dados"], ["produtos", "🛍 Produtos"]].map(([id, label]) => (
+            <button key={id} onClick={() => setAba(id)}
+              className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-all ${
+                aba === id ? "text-forest-green border-old-gold" : "text-forest-green/40 border-transparent hover:text-forest-green/60"
+              }`}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Conteúdo scrollável */}
+        <div className="overflow-y-auto flex-1 p-6">
+
+          {/* ── Aba Dados ── */}
+          {aba === "dados" && (
+            <form onSubmit={handleSalvarDados} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-forest-green">Nome <span className="text-old-gold">*</span></label>
+                  <input name="nome" required value={form.nome} onChange={change} className={CAMPO} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-forest-green">E-mail</label>
+                  <input name="email" type="email" value={form.email} onChange={change} className={CAMPO} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-forest-green">CPF</label>
+                  <input name="cpf" value={form.cpf} onChange={change} placeholder="000.000.000-00" className={CAMPO} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-forest-green">WhatsApp</label>
+                  <input name="contato" value={form.contato} onChange={change} placeholder="(00) 00000-0000" className={CAMPO} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-forest-green">Categoria Principal</label>
+                  <select name="categoriaProd" value={form.categoriaProd} onChange={change} className={CAMPO}>
+                    <option value="">Selecione...</option>
+                    {CATEGORIAS_PRODUTO.map((c) => (
+                      <option key={c.value} value={c.value}>{c.icon} {c.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-forest-green">Município</label>
+                  <input name="municipio" value={form.municipio} onChange={change} className={CAMPO} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-forest-green">Estado / Localidade</label>
+                  <input name="localidade" value={form.localidade} onChange={change} placeholder="Ex: Minas Gerais" className={CAMPO} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-forest-green">Ano de Início</label>
+                  <input name="anoInicio" type="number" min={1900} max={2030} value={form.anoInicio} onChange={change} className={CAMPO} />
+                </div>
+                <div className="sm:col-span-2 flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-forest-green">Endereço</label>
+                  <input name="endereco" value={form.endereco} onChange={change} className={CAMPO} />
+                </div>
+                <div className="sm:col-span-2 flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-forest-green">Bio / Apresentação</label>
+                  <textarea name="bio" rows={3} value={form.bio} onChange={change}
+                    placeholder="Breve descrição do produtor..." className={`${CAMPO} resize-none`} />
+                </div>
+                <div className="sm:col-span-2">
+                  <CampoFotoUpload label="Foto do Produtor" value={form.fotoUrl}
+                    onChange={(v) => setForm((p) => ({ ...p, fotoUrl: v }))} />
+                </div>
+                <div className="sm:col-span-2">
+                  <CampoFotoUpload label="Foto da Produção" value={form.fotoProducaoUrl}
+                    onChange={(v) => setForm((p) => ({ ...p, fotoProducaoUrl: v }))} />
+                </div>
+              </div>
+              <button type="submit" disabled={salvando}
+                className="w-full min-h-[44px] bg-forest-green text-silk-cream rounded-xl font-bold text-sm hover:bg-old-gold hover:text-forest-green transition-colors disabled:opacity-40">
+                {salvando ? "Salvando..." : "Salvar Dados do Produtor"}
+              </button>
+            </form>
+          )}
+
+          {/* ── Aba Produtos ── */}
+          {aba === "produtos" && (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-forest-green">
+                  {loadProd ? "Carregando..." : `${produtos.length} produto${produtos.length !== 1 ? "s" : ""}`}
+                </p>
+                <button
+                  onClick={() => { cancelarEditProduto(); setShowNovoProduto((v) => !v); }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-forest-green text-silk-cream rounded-xl text-xs font-semibold hover:bg-old-gold hover:text-forest-green transition-colors">
+                  {showNovoProduto ? "✕ Cancelar" : "+ Novo Produto"}
+                </button>
+              </div>
+
+              {/* Form novo/editar produto */}
+              {(showNovoProduto || produtoEditId) && (
+                <form onSubmit={handleSalvarProduto}
+                  className="bg-silk-cream/60 rounded-2xl border border-forest-green/10 p-4 flex flex-col gap-3">
+                  <h5 className="text-xs font-bold text-forest-green uppercase tracking-wider">
+                    {produtoEditId ? "Editar produto" : "Novo produto"}
+                  </h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-forest-green">Nome <span className="text-old-gold">*</span></label>
+                      <input name="nome" required value={formProd.nome} onChange={changeProd} className={CAMPO} />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-forest-green">Categoria</label>
+                      <select name="categoria" value={formProd.categoria} onChange={changeProd} className={CAMPO}>
+                        {CATEGORIAS_PRODUTO.map((c) => (
+                          <option key={c.value} value={c.value}>{c.icon} {c.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-forest-green">Preço</label>
+                      <input name="preco" value={formProd.preco} onChange={changeProd} placeholder="Ex: R$ 25,00" className={CAMPO} />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-forest-green">Quantidade</label>
+                      <input name="quantidade" type="number" min={0} value={formProd.quantidade} onChange={changeProd} className={CAMPO} />
+                    </div>
+                    <div className="sm:col-span-2 flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-forest-green">Descrição</label>
+                      <textarea name="descricao" rows={2} value={formProd.descricao} onChange={changeProd}
+                        className={`${CAMPO} resize-none`} />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-forest-green">WhatsApp / Contato</label>
+                      <input name="contato" value={formProd.contato} onChange={changeProd} className={CAMPO} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <CampoFotoUpload label="Foto do Produto" value={formProd.fotoUrl}
+                        onChange={(v) => setFormProd((p) => ({ ...p, fotoUrl: v }))} />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="submit" disabled={salvandoProd}
+                      className="flex-1 min-h-[40px] bg-forest-green text-silk-cream rounded-xl font-bold text-sm hover:bg-old-gold hover:text-forest-green transition-colors disabled:opacity-40">
+                      {salvandoProd ? "Salvando..." : produtoEditId ? "Salvar Produto" : "Cadastrar Produto"}
+                    </button>
+                    <button type="button" onClick={cancelarEditProduto}
+                      className="px-4 min-h-[40px] rounded-xl border border-forest-green/20 text-forest-green/60 text-sm hover:bg-forest-green/5 transition-colors">
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Lista de produtos */}
+              {loadProd ? (
+                <p className="text-center text-forest-green/40 animate-pulse text-sm py-6">Carregando produtos...</p>
+              ) : produtos.length === 0 && !showNovoProduto ? (
+                <p className="text-center text-forest-green/40 italic text-sm py-6">Nenhum produto cadastrado.</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {produtos.map((prod) => {
+                    const cat = CATEGORIAS_PRODUTO.find((c) => c.value === prod.categoria);
+                    const isEdit = produtoEditId === prod.id;
+                    return (
+                      <div key={prod.id}
+                        className={`bg-white rounded-xl border p-3 flex gap-3 items-center transition-all ${
+                          isEdit ? "border-old-gold shadow-sm" : "border-forest-green/10"
+                        }`}>
+                        {prod.fotoUrl ? (
+                          <img src={prod.fotoUrl} alt={prod.nome} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: (cat?.cor || "#166534") + "18" }}>
+                            <span className="text-xl">{cat?.icon || "📦"}</span>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-forest-green text-sm truncate">{prod.nome}</p>
+                          <p className="text-xs text-forest-green/50">
+                            {cat ? `${cat.icon} ${cat.label}` : prod.categoria}
+                            {prod.preco ? ` · ${prod.preco}` : ""}
+                            {prod.quantidade != null ? ` · Qtd: ${prod.quantidade}` : ""}
+                          </p>
+                        </div>
+                        <div className="flex gap-1.5 shrink-0">
+                          <button onClick={() => iniciarEditProduto(prod)} title="Editar produto"
+                            className="w-7 h-7 rounded-lg border border-forest-green/20 text-forest-green/60 hover:bg-forest-green hover:text-silk-cream flex items-center justify-center transition-colors">
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                          </button>
+                          <button onClick={() => handleDeletarProduto(prod.id, prod.nome)} title="Excluir produto"
+                            className="w-7 h-7 rounded-lg border border-red-200 text-red-400 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors">
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                              <path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Aba: Produtores ───────────────────────────────────────────────────────────
 
 function ModalEnviarMensagemGestor({ produtor, onClose, onToast }) {
@@ -397,6 +743,7 @@ function AbaProdutores({ onToast, navigate }) {
   const [showForm, setShowForm] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [modalMsgProdutor, setModalMsgProdutor] = useState(null);
+  const [produtorEditando, setProdutorEditando] = useState(null);
   const FORM_VAZIO = {
     nome: "", email: "", senha: "raizes2025", cpf: "", municipio: "", localidade: "",
     endereco: "", anoInicio: "", contato: "", categoriaProd: "", fotoUrl: "", fotoProducaoUrl: "",
@@ -444,6 +791,14 @@ function AbaProdutores({ onToast, navigate }) {
 
   return (
     <div className="flex flex-col gap-5">
+      {produtorEditando && (
+        <ModalEditarProdutor
+          produtor={produtorEditando}
+          onClose={() => setProdutorEditando(null)}
+          onToast={onToast}
+          onAtualizado={() => { carregar(); setProdutorEditando(null); }}
+        />
+      )}
       {modalMsgProdutor && (
         <ModalEnviarMensagemGestor
           produtor={modalMsgProdutor}
@@ -556,6 +911,13 @@ function AbaProdutores({ onToast, navigate }) {
                             className="w-7 h-7 rounded-lg border border-forest-green/20 text-forest-green/60 hover:bg-forest-green hover:text-silk-cream flex items-center justify-center transition-colors">
                             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                            </svg>
+                          </button>
+                          <button onClick={() => setProdutorEditando(p)} title="Editar produtor"
+                            className="w-7 h-7 rounded-lg border border-old-gold/40 text-old-gold hover:bg-old-gold hover:text-forest-green flex items-center justify-center transition-colors">
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                             </svg>
                           </button>
                           <button onClick={() => setModalMsgProdutor(p)} title="Enviar mensagem"
