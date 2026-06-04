@@ -53,10 +53,10 @@ export default function VoiceNarrativaAssistant() {
     };
   }, []);
 
-  // ── Voz → texto (appenda ao textarea) ────────────────────────────────────
+  // ── Voz → texto ──────────────────────────────────────────────────────────
 
   function iniciarGravacao() {
-    if (!suportaVoz) return;
+    if (!suportaVoz || gravando) return;
     finalRef.current = "";
     setErro(null);
     setGravando(true);
@@ -75,10 +75,10 @@ export default function VoiceNarrativaAssistant() {
           interim += e.results[i][0].transcript;
         }
       }
-      // Mostra interim como placeholder visual no textarea
-      textareaRef.current && (textareaRef.current.dataset.interim = interim);
+      if (textareaRef.current) textareaRef.current.dataset.interim = interim;
     };
 
+    // onend é chamado tanto pelo timeout da API quanto pelo recognition.stop() manual
     rec.onend = () => {
       setGravando(false);
       if (finalRef.current.trim()) {
@@ -96,14 +96,17 @@ export default function VoiceNarrativaAssistant() {
           prev ? prev.trimEnd() + " " + finalRef.current.trim() : finalRef.current.trim()
         );
       }
+      if (textareaRef.current) textareaRef.current.dataset.interim = "";
     };
 
     recognitionRef.current = rec;
     rec.start();
   }
 
+  // Parar é exclusivo deste botão — o botão de microfone não para mais a gravação
   function pararGravacao() {
     recognitionRef.current?.stop();
+    // setGravando(false) será chamado pelo onend acima de forma segura
   }
 
   // ── Enviar para Gemini ────────────────────────────────────────────────────
@@ -185,11 +188,11 @@ export default function VoiceNarrativaAssistant() {
 
       {/* Textarea com microfone flutuante */}
       <div className="relative">
-        {/* Indicador de gravação */}
+        {/* Faixa de status de gravação */}
         {gravando && (
           <div className="absolute top-3 left-3 right-14 flex items-center gap-1.5 z-10 pointer-events-none">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
-            <span className="text-xs text-red-500 font-semibold">Gravando em português... fale agora</span>
+            <span className="text-xs text-red-500 font-semibold">Gravando... fale agora</span>
           </div>
         )}
 
@@ -211,21 +214,29 @@ export default function VoiceNarrativaAssistant() {
             }`}
         />
 
-        {/* Botão mic flutuante */}
+        {/* Botão microfone — inicia gravação, fica bloqueado enquanto grava */}
         {suportaVoz ? (
-          <button
-            type="button"
-            onClick={gravando ? pararGravacao : iniciarGravacao}
-            aria-label={gravando ? "Parar gravação" : "Iniciar gravação de voz"}
-            className={`absolute bottom-3 right-3 w-11 h-11 rounded-full shadow-md
-              flex items-center justify-center transition-all duration-200
-              ${gravando
-                ? "bg-red-500 text-white scale-110"
-                : "bg-old-gold/15 text-old-gold hover:bg-old-gold hover:text-forest-green hover:scale-105"
-              }`}
-          >
-            {gravando ? <IconStop className="w-4 h-4" /> : <IconMic className="w-5 h-5" />}
-          </button>
+          <div className="absolute bottom-3 right-3">
+            {/* Anel de pulso externo — visível somente durante gravação */}
+            {gravando && (
+              <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-50 pointer-events-none" />
+            )}
+            <button
+              type="button"
+              onClick={iniciarGravacao}
+              disabled={gravando}
+              aria-label="Iniciar gravação de voz"
+              title={gravando ? "Microfone ativo — use o botão Parar abaixo" : "Iniciar gravação de voz"}
+              className={`relative w-11 h-11 rounded-full shadow-md
+                flex items-center justify-center transition-all duration-200
+                ${gravando
+                  ? "bg-red-500 text-white cursor-not-allowed"
+                  : "bg-old-gold/15 text-old-gold hover:bg-old-gold hover:text-forest-green hover:scale-105"
+                }`}
+            >
+              <IconMic className="w-5 h-5" />
+            </button>
+          </div>
         ) : (
           <div className="absolute bottom-3 right-3 px-2 py-1 bg-gray-100 rounded-lg">
             <span className="text-[10px] text-gray-400">Voz indisponível</span>
@@ -233,12 +244,27 @@ export default function VoiceNarrativaAssistant() {
         )}
       </div>
 
-      {/* Contador de caracteres */}
+      {/* Botão Parar Gravação — aparece somente enquanto grava */}
+      {gravando && (
+        <button
+          type="button"
+          onClick={pararGravacao}
+          className="flex items-center justify-center gap-2 w-full min-h-[46px]
+            rounded-2xl border-2 border-red-400 bg-red-50 text-red-600
+            font-bold text-sm hover:bg-red-500 hover:text-white hover:border-red-500
+            transition-all duration-200 shadow-sm"
+        >
+          <IconStop className="w-4 h-4" />
+          Parar Gravação
+        </button>
+      )}
+
+      {/* Contador de palavras */}
       <div className="flex items-center justify-between -mt-3 px-1">
         <span className="text-xs text-forest-green/35">
           {texto.length > 0 ? `${texto.split(/\s+/).filter(Boolean).length} palavras` : ""}
         </span>
-        {texto.length > 0 && (
+        {texto.length > 0 && !gravando && (
           <button
             type="button"
             onClick={() => setTexto("")}
@@ -261,7 +287,7 @@ export default function VoiceNarrativaAssistant() {
       ) : (
         <button
           onClick={handleGerar}
-          disabled={!texto.trim()}
+          disabled={!texto.trim() || gravando}
           className="w-full min-h-[52px] bg-forest-green text-silk-cream rounded-2xl font-bold text-base
             flex items-center justify-center gap-2
             hover:bg-old-gold hover:text-forest-green transition-colors disabled:opacity-35"
